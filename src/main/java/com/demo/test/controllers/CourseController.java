@@ -63,7 +63,6 @@ public class CourseController extends ResponseEntityExceptionHandler {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-
     }
 
 
@@ -78,16 +77,14 @@ public class CourseController extends ResponseEntityExceptionHandler {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-
     }
 
     @PostMapping(value = "/courses", headers = "Accept=application/json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> createCourse(@RequestBody String json) {
 
-        CoursePojo c = this.gson.fromJson(json, CoursePojo.class);
+        CoursePojo coursePojo = this.gson.fromJson(json, CoursePojo.class);
 
-
-        boolean resp = this.coursesService.saveCourse(c);
+        boolean resp = this.coursesService.saveCourse(coursePojo);
 
         HttpStatus status = resp ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST;
 
@@ -97,9 +94,9 @@ public class CourseController extends ResponseEntityExceptionHandler {
     @PutMapping(value = "/courses/{id}", headers = "Accept=application/json")
     public ResponseEntity<Object> updateCourse(@PathVariable int id, @RequestBody String json) {
 
-        CoursePojo c = this.gson.fromJson(json, CoursePojo.class);
+        CoursePojo coursePojo = this.gson.fromJson(json, CoursePojo.class);
 
-        boolean resp = this.coursesService.updateCourse(id, c);
+        boolean resp = this.coursesService.updateCourse(id, coursePojo);
 
         HttpStatus status = resp ? HttpStatus.OK : HttpStatus.NOT_FOUND;
 

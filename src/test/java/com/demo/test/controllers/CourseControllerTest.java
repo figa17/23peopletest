@@ -76,9 +76,6 @@ class CourseControllerTest {
                 .andExpect(jsonPath("page", is(1)))
                 .andExpect(jsonPath("totalPages", is(2)));
 
-
-
-
     }
 
     @Test
