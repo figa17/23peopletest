@@ -1,24 +1,24 @@
 package com.demo.test.controllers;
 
-import com.demo.test.models.Course;
 import com.demo.test.models.Student;
 import com.demo.test.service.StudentService;
 import com.google.gson.Gson;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pojo.CoursePojo;
-import pojo.StudentPojo;
 
-import java.util.Collections;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
  * Created by Felipe González Alfaro on 18-03-20.
  */
 @RestController
+@Api(value = "Courses", description = "Student controller")
 public class StudentController {
 
     @Autowired
@@ -28,9 +28,9 @@ public class StudentController {
     private Gson gson;
 
     @GetMapping(value = "/student", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Student> getStudentPagination() {
+    public Page<Student> getStudentPagination(@RequestParam int page, @RequestParam int size) {
 
-        return Collections.emptyList();
+        return this.studentService.getStudentPag(page, size);
     }
 
     @GetMapping(value = "/student/all", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -60,11 +60,10 @@ public class StudentController {
     }
 
     @PostMapping("/student")
-    public ResponseEntity<Object> createStudent(@RequestBody String json) {
+    public ResponseEntity<Object> createStudent(@Valid @RequestBody Student student) {
 
-        StudentPojo studentPojo = this.gson.fromJson(json, StudentPojo.class);
 
-        boolean resp = this.studentService.saveStudent(studentPojo);
+        boolean resp = this.studentService.saveStudent(student);
 
         HttpStatus status = resp ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST;
 
@@ -72,11 +71,9 @@ public class StudentController {
     }
 
     @PutMapping("/student/{id}")
-    public ResponseEntity<Object> updateStudent(@PathVariable int id, @RequestBody String json) {
+    public ResponseEntity<Object> updateStudent(@PathVariable int id, @Valid @RequestBody Student student) {
 
-        StudentPojo studentPojo = this.gson.fromJson(json, StudentPojo.class);
-
-        boolean resp = this.studentService.updateStudent(id, studentPojo);
+        boolean resp = this.studentService.updateStudent(id, student);
 
         HttpStatus status = resp ? HttpStatus.OK : HttpStatus.NOT_FOUND;
 

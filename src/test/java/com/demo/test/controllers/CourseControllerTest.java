@@ -4,8 +4,6 @@ import com.demo.test.models.Course;
 import com.demo.test.service.CourseService;
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
-import lombok.Builder;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
-import pojo.CoursePojo;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,7 +70,8 @@ class CourseControllerTest {
                 .param("page", "1").param("size", "5"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("page", is(1)))
+                .andExpect(jsonPath("size", is(5)))
+                .andExpect(jsonPath("number", is(1)))
                 .andExpect(jsonPath("totalPages", is(2)));
 
     }
@@ -141,13 +139,10 @@ class CourseControllerTest {
     @Test
     void createCourse() throws Exception {
 
-        when(this.courseService.saveCourse(any(CoursePojo.class))).thenReturn(true);
+        when(this.courseService.saveCourse(any(Course.class))).thenReturn(true);
 
-        CoursePojo pojo = new CoursePojo();
-        pojo.setCode("code");
-        pojo.setName("name");
 
-        String json = this.g.toJson(pojo);
+        String json = this.g.toJson(new Course());
 
         this.mockMvc.perform(post("/courses").content(json))
                 .andDo(print())
@@ -159,12 +154,10 @@ class CourseControllerTest {
     @Test
     void createCourseError() throws Exception {
 
-        when(this.courseService.saveCourse(any(CoursePojo.class))).thenReturn(false);
+        when(this.courseService.saveCourse(any(Course.class))).thenReturn(false);
 
-        CoursePojo pojo = new CoursePojo();
-        pojo.setName("name");
 
-        String json = this.g.toJson(pojo);
+        String json = this.g.toJson(new Course());
 
         this.mockMvc.perform(post("/courses").content(json))
                 .andDo(print())
@@ -177,14 +170,15 @@ class CourseControllerTest {
     @Test
     void updateCourse() throws Exception {
 
-        CoursePojo pojo = new CoursePojo();
-        pojo.setCode("code");
-        pojo.setName("name_updated");
+        Course course = Course.builder()
+                .code("code")
+                .name("name_updated")
+                .build();
 
 
-        when(this.courseService.updateCourse(anyInt(), any(CoursePojo.class))).thenReturn(true);
+        when(this.courseService.updateCourse(anyInt(), any(Course.class))).thenReturn(true);
 
-        this.mockMvc.perform(put("/courses/1").content(this.g.toJson(pojo)))
+        this.mockMvc.perform(put("/courses/1").content(this.g.toJson(course)))
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -193,14 +187,14 @@ class CourseControllerTest {
     @Test
     void updateCourseError() throws Exception {
 
-        CoursePojo pojo = new CoursePojo();
-        pojo.setCode("code");
-        pojo.setName("name_updated");
+        Course course = Course.builder()
+                .code("code")
+                .name("name_updated")
+                .build();
 
+        when(this.courseService.updateCourse(anyInt(), any(Course.class))).thenReturn(false);
 
-        when(this.courseService.updateCourse(anyInt(), any(CoursePojo.class))).thenReturn(false);
-
-        this.mockMvc.perform(put("/courses/1").content(this.g.toJson(pojo)))
+        this.mockMvc.perform(put("/courses/1").content(this.g.toJson(course)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 

@@ -8,7 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pojo.StudentPojo;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +23,8 @@ public class StudentImpService implements StudentService {
 
     @Override
     public Page<Student> getStudentPag(int page, int size) {
+        System.out.println(page);
+        System.out.println(size);
         Pageable page_req = PageRequest.of(page, size);
         Page<Student> resultPage = this.studentRepository.findAll(page_req);
 
@@ -36,15 +37,7 @@ public class StudentImpService implements StudentService {
     }
 
     @Override
-    public boolean saveStudent(StudentPojo studentPojo) {
-        Student student = Student.builder()
-                .id(0)
-                .name(studentPojo.getName())
-                .lastName(studentPojo.getLastName())
-                .age(studentPojo.getAge())
-                .rut(studentPojo.getRut())
-                .course(studentPojo.getCourse())
-                .build();
+    public boolean saveStudent(Student student) {
 
         student = this.studentRepository.save(student);
 
@@ -66,18 +59,18 @@ public class StudentImpService implements StudentService {
     }
 
     @Override
-    public boolean updateStudent(int id, StudentPojo studentPojo) {
+    public boolean updateStudent(int id, Student student) {
         Optional<Student> optionalStudent = this.studentRepository.findById(id);
 
         if (optionalStudent.isPresent()) {
-            Student student = optionalStudent.get();
-            student.setName(studentPojo.getName());
-            student.setLastName(studentPojo.getName());
-            student.setRut(studentPojo.getRut());
-            student.setAge(studentPojo.getAge());
-            student.setCourse(studentPojo.getCourse());
+            Student student1 = optionalStudent.get();
+            student.setName(student.getName());
+            student.setLastName(student.getName());
+            student.setRut(student.getRut());
+            student.setAge(student.getAge());
+            student.setCourse(student.getCourse());
 
-            this.studentRepository.save(student);
+            this.studentRepository.save(student1);
             return true;
         } else {
 

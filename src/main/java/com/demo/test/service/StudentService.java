@@ -3,8 +3,6 @@ package com.demo.test.service;
 import com.demo.test.models.Course;
 import com.demo.test.models.Student;
 import org.springframework.data.domain.Page;
-import pojo.CoursePojo;
-import pojo.StudentPojo;
 
 import java.util.List;
 
@@ -17,11 +15,11 @@ public interface StudentService {
 
     List<Student> getStudents();
 
-    boolean saveStudent(StudentPojo course);
+    boolean saveStudent(Student course);
 
     Student getStudentById(int id);
 
-    boolean updateStudent(int id, StudentPojo course);
+    boolean updateStudent(int id, Student course);
 
     boolean deleteStudent(int id);
 }

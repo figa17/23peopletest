@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pojo.CoursePojo;
 
 import javax.print.attribute.standard.PageRanges;
 import java.util.Collections;
@@ -41,16 +40,11 @@ public class CourseImpService implements CourseService {
     }
 
     @Override
-    public boolean saveCourse(CoursePojo course) {
-        Course course1 = Course.builder()
-                .id(0)
-                .code(course.getCode())
-                .name(course.getName())
-                .build();
+    public boolean saveCourse(Course course) {
 
-        course1 = this.courseRepository.save(course1);
+        course = this.courseRepository.save(course);
 
-        return course1.getId() > 0;
+        return course.getId() > 0;
     }
 
 
@@ -64,7 +58,7 @@ public class CourseImpService implements CourseService {
     }
 
     @Override
-    public boolean updateCourse(int id, CoursePojo course) {
+    public boolean updateCourse(int id, Course course) {
 
         Optional<Course> course1 = this.courseRepository.findById(id);
 
