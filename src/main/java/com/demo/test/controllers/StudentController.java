@@ -1,10 +1,12 @@
 package com.demo.test.controllers;
 
+import com.demo.test.models.ApiEntity;
 import com.demo.test.models.Student;
-import com.demo.test.service.StudentService;
+import com.demo.test.service.StandarService;
 import com.google.gson.Gson;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,24 +21,25 @@ import java.util.List;
  */
 @RestController
 @Api(value = "Courses", description = "Student controller")
-public class StudentController {
+public class StudentController extends HandlerArgumentController {
 
     @Autowired
-    private StudentService studentService;
+    @Qualifier("studentservice")
+    private StandarService studentService;
 
     @Autowired
     private Gson gson;
 
     @GetMapping(value = "/student", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<Student> getStudentPagination(@RequestParam int page, @RequestParam int size) {
+    public Page<? extends ApiEntity> getStudentPagination(@RequestParam int page, @RequestParam int size) {
 
-        return this.studentService.getStudentPag(page, size);
+        return this.studentService.getPag(page, size);
     }
 
     @GetMapping(value = "/student/all", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Student>> getAll() {
+    public ResponseEntity<List<? extends ApiEntity>> getAll() {
 
-        List<Student> resp = this.studentService.getStudents();
+        List<? extends ApiEntity> resp = this.studentService.getAll();
 
         if (resp.size() > 0) {
             return ResponseEntity.ok()
@@ -49,8 +52,9 @@ public class StudentController {
 
 
     @GetMapping(value = "/student/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Student> getStudent(@PathVariable int id) {
-        Student resp = this.studentService.getStudentById(id);
+    public ResponseEntity<? extends ApiEntity> getStudent(@PathVariable int id) {
+
+        Student resp = (Student) this.studentService.getById(id);
 
         if (resp != null) {
             return ResponseEntity.ok().body(resp);
@@ -62,8 +66,7 @@ public class StudentController {
     @PostMapping("/student")
     public ResponseEntity<Object> createStudent(@Valid @RequestBody Student student) {
 
-
-        boolean resp = this.studentService.saveStudent(student);
+        boolean resp = this.studentService.save(student);
 
         HttpStatus status = resp ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST;
 
@@ -73,7 +76,7 @@ public class StudentController {
     @PutMapping("/student/{id}")
     public ResponseEntity<Object> updateStudent(@PathVariable int id, @Valid @RequestBody Student student) {
 
-        boolean resp = this.studentService.updateStudent(id, student);
+        boolean resp = this.studentService.update(id, student);
 
         HttpStatus status = resp ? HttpStatus.OK : HttpStatus.NOT_FOUND;
 
@@ -83,9 +86,10 @@ public class StudentController {
     @DeleteMapping("/student/{id}")
     public ResponseEntity<Object> deleteStudent(@PathVariable int id) {
 
-        boolean resp = this.studentService.deleteStudent(id);
+        boolean resp = this.studentService.delete(id);
 
         HttpStatus status = resp ? HttpStatus.OK : HttpStatus.NOT_FOUND;
         return new ResponseEntity<>(status);
     }
+
 }

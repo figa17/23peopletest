@@ -21,7 +21,7 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 
 @Entity
-public class Student {
+public class Student extends ApiEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

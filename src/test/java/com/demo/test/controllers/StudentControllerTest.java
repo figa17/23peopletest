@@ -1,12 +1,15 @@
 package com.demo.test.controllers;
 
+import com.demo.test.models.ApiEntity;
 import com.demo.test.models.Course;
 import com.demo.test.models.Student;
-import com.demo.test.service.StudentService;
+import com.demo.test.service.StandarService;
+import com.demo.test.service.StudentImpService;
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -20,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -38,8 +40,8 @@ class StudentControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private StudentService studentService;
+    @MockBean(StudentImpService.class)
+    private StandarService studentService;
 
     @Autowired
     private Gson gson;
@@ -73,9 +75,9 @@ class StudentControllerTest {
         }
 
 
-        Page<Student> studentPage = new PageImpl<>(studentList, PageRequest.of(1, student_size), 5);
+        Page studentPage = new PageImpl<>(studentList, PageRequest.of(1, student_size), 5);
 
-        when(this.studentService.getStudentPag(anyInt(), anyInt())).thenReturn(studentPage);
+        when(this.studentService.getPag(anyInt(), anyInt())).thenReturn(studentPage);
 
         this.mockMvc.perform(get("/student")
                 .param("page", "1").param("size", "5"))
@@ -96,14 +98,17 @@ class StudentControllerTest {
 
         Student student = Student.builder()
                 .id(1)
-                .rut("rut")
+                .rut("16660706-k")
                 .name("name")
                 .lastName("last_name")
                 .age(19)
                 .course(course)
                 .build();
 
-        when(this.studentService.getStudents()).thenReturn(Collections.singletonList(student));
+        List students = new ArrayList<>();
+        students.add(student);
+
+        when(this.studentService.getAll()).thenReturn(students);
 
         this.mockMvc.perform(get("/student/all"))
                 .andDo(print())
@@ -116,7 +121,7 @@ class StudentControllerTest {
     @Test
     public void getAllEmptyError() throws Exception {
 
-        when(this.studentService.getStudents()).thenReturn(Collections.emptyList());
+        when(this.studentService.getAll()).thenReturn(Collections.emptyList());
 
         this.mockMvc.perform(get("/student/all"))
                 .andExpect(status().isNotFound());
@@ -132,7 +137,7 @@ class StudentControllerTest {
 
         Student student = Student.builder()
                 .id(1)
-                .rut("rut")
+                .rut("16660706-k")
                 .name("name")
                 .lastName("last_name")
                 .age(19)
@@ -140,7 +145,7 @@ class StudentControllerTest {
                 .build();
 
 
-        when(this.studentService.getStudentById(anyInt())).thenReturn(student);
+        when(this.studentService.getById(anyInt())).thenReturn(student);
 
 
         this.mockMvc.perform(get("/student/1"))
@@ -152,10 +157,10 @@ class StudentControllerTest {
     }
 
     @Test
-    void getStudentotFound() throws Exception {
+    void getStudentNotFound() throws Exception {
 
 
-        when(this.studentService.getStudentById(anyInt())).thenReturn(null);
+        when(this.studentService.getById(anyInt())).thenReturn(null);
 
         this.mockMvc.perform(get("/student/1"))
                 .andExpect(status().isNotFound());
@@ -171,17 +176,19 @@ class StudentControllerTest {
 
         Student student = Student.builder()
                 .id(1)
-                .rut("rut")
+                .rut("16660706-k")
                 .name("name")
                 .lastName("last_name")
                 .age(19)
                 .course(course)
                 .build();
 
-        when(this.studentService.saveStudent(any(Student.class))).thenReturn(true);
+        when(this.studentService.save(any(Student.class))).thenReturn(true);
 
 
-        this.mockMvc.perform(post("/student").content(this.gson.toJson(student)))
+        this.mockMvc.perform(post("/student")
+                .header("Content-Type", "application/json")
+                .content(this.gson.toJson(student)))
                 .andDo(print())
                 .andExpect(status().isCreated());
 
@@ -191,10 +198,12 @@ class StudentControllerTest {
     @Test
     void createStudentError() throws Exception {
 
-        when(this.studentService.saveStudent(any(Student.class))).thenReturn(false);
+        when(this.studentService.save(any(Student.class))).thenReturn(false);
 
 
-        this.mockMvc.perform(post("/student").content(this.gson.toJson(new Student())))
+        this.mockMvc.perform(post("/student")
+                .header("Content-Type", "application/json")
+                .content(this.gson.toJson(new Student())))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -204,20 +213,54 @@ class StudentControllerTest {
     @Test
     void updateStudent() throws Exception {
 
-        when(this.studentService.updateStudent(anyInt(), any(Student.class))).thenReturn(true);
+        Course course = Course.builder()
+                .code("code")
+                .name("course_1")
+                .id(1)
+                .build();
 
-        this.mockMvc.perform(put("/student/1").content(this.gson.toJson(new Student())))
+        Student student = Student.builder()
+                .id(1)
+                .rut("16660706-k")
+                .name("name")
+                .lastName("last_name")
+                .age(19)
+                .course(course)
+                .build();
+
+        when(this.studentService.update(anyInt(), any(Student.class))).thenReturn(true);
+
+
+        this.mockMvc.perform(put("/student/1")
+                .header("Content-Type", "application/json")
+                .content(this.gson.toJson(student)))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
 
     @Test
     void updateStudentError() throws Exception {
+        Course course = Course.builder()
+                .code("code")
+                .name("course_1")
+                .id(1)
+                .build();
+
+        Student student = Student.builder()
+                .id(1)
+                .rut("16660706-k")
+                .name("name")
+                .lastName("last_name")
+                .age(19)
+                .course(course)
+                .build();
 
 
-        when(this.studentService.updateStudent(anyInt(), any(Student.class))).thenReturn(false);
+        when(this.studentService.update(anyInt(), any(Student.class))).thenReturn(false);
 
-        this.mockMvc.perform(put("/student/1").content(this.gson.toJson(new Student())))
+        this.mockMvc.perform(put("/student/1")
+                .header("Content-Type", "application/json")
+                .content(this.gson.toJson(student)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -225,7 +268,7 @@ class StudentControllerTest {
 
     @Test
     void deleteStudent() throws Exception {
-        when(this.studentService.deleteStudent(anyInt())).thenReturn(true);
+        when(this.studentService.delete(anyInt())).thenReturn(true);
 
         this.mockMvc.perform(delete("/student/1"))
                 .andDo(print())
@@ -236,7 +279,7 @@ class StudentControllerTest {
     void deleteStudentError() throws Exception {
 
 
-        when(this.studentService.deleteStudent(anyInt())).thenReturn(false);
+        when(this.studentService.delete(anyInt())).thenReturn(false);
 
         this.mockMvc.perform(delete("/student/1"))
                 .andDo(print())

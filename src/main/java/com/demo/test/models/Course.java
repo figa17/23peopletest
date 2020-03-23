@@ -18,7 +18,7 @@ import javax.validation.constraints.*;
 @AllArgsConstructor
 
 @Entity
-public class Course {
+public class Course extends ApiEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

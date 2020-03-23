@@ -1,7 +1,8 @@
 package com.demo.test.controllers;
 
 import com.demo.test.models.Course;
-import com.demo.test.service.CourseService;
+import com.demo.test.service.CourseImpService;
+import com.demo.test.service.StandarService;
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,8 @@ class CourseControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private CourseService courseService;
+    @MockBean(CourseImpService.class)
+    private StandarService courseService;
 
 
     @Test
@@ -62,9 +63,9 @@ class CourseControllerTest {
         }
 
 
-        Page<Course> coursePage = new PageImpl<>(courseList, PageRequest.of(1, course_size), 5);
+        Page coursePage = new PageImpl<>(courseList, PageRequest.of(1, course_size), 5);
 
-        when(this.courseService.getCoursesPag(anyInt(), anyInt())).thenReturn(coursePage);
+        when(this.courseService.getPag(anyInt(), anyInt())).thenReturn(coursePage);
 
         this.mockMvc.perform(get("/courses")
                 .param("page", "1").param("size", "5"))
@@ -85,7 +86,9 @@ class CourseControllerTest {
                 .id(1)
                 .build();
 
-        when(this.courseService.getCourses()).thenReturn(Collections.singletonList(course));
+        List courses = new ArrayList<>();
+        courses.add(course);
+        when(this.courseService.getAll()).thenReturn(courses);
 
         this.mockMvc.perform(get("/courses/all"))
                 .andDo(print())
@@ -100,7 +103,7 @@ class CourseControllerTest {
     @Test
     public void getAllEmptyError() throws Exception {
 
-        when(this.courseService.getCourses()).thenReturn(Collections.emptyList());
+        when(this.courseService.getAll()).thenReturn(Collections.emptyList());
 
         this.mockMvc.perform(get("/courses/all"))
                 .andExpect(status().isNotFound());
@@ -114,7 +117,7 @@ class CourseControllerTest {
                 .id(1)
                 .build();
 
-        when(this.courseService.getCourseById(anyInt())).thenReturn(course);
+        when(this.courseService.getById(anyInt())).thenReturn(course);
 
 
         this.mockMvc.perform(get("/courses/1"))
@@ -129,7 +132,7 @@ class CourseControllerTest {
     @Test
     public void getCourseNotFound() throws Exception {
 
-        when(this.courseService.getCourseById(anyInt())).thenReturn(null);
+        when(this.courseService.getById(anyInt())).thenReturn(null);
 
         this.mockMvc.perform(get("/courses/1"))
                 .andExpect(status().isNotFound());
@@ -139,12 +142,19 @@ class CourseControllerTest {
     @Test
     void createCourse() throws Exception {
 
-        when(this.courseService.saveCourse(any(Course.class))).thenReturn(true);
+        when(this.courseService.save(any(Course.class))).thenReturn(true);
 
+        Course course = Course.builder()
+                .name("test")
+                .code("code")
+                .id(1)
+                .build();
 
-        String json = this.g.toJson(new Course());
+        String json = this.g.toJson(course);
 
-        this.mockMvc.perform(post("/courses").content(json))
+        this.mockMvc.perform(post("/courses")
+                .header("Content-Type", "application/json")
+                .content(json))
                 .andDo(print())
                 .andExpect(status().isCreated());
 
@@ -154,12 +164,14 @@ class CourseControllerTest {
     @Test
     void createCourseError() throws Exception {
 
-        when(this.courseService.saveCourse(any(Course.class))).thenReturn(false);
+        when(this.courseService.save(any(Course.class))).thenReturn(false);
 
 
         String json = this.g.toJson(new Course());
 
-        this.mockMvc.perform(post("/courses").content(json))
+        this.mockMvc.perform(post("/courses")
+                .header("Content-Type", "application/json")
+                .content(json))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -176,9 +188,11 @@ class CourseControllerTest {
                 .build();
 
 
-        when(this.courseService.updateCourse(anyInt(), any(Course.class))).thenReturn(true);
+        when(this.courseService.update(anyInt(), any(Course.class))).thenReturn(true);
 
-        this.mockMvc.perform(put("/courses/1").content(this.g.toJson(course)))
+        this.mockMvc.perform(put("/courses/1")
+                .header("Content-Type", "application/json")
+                .content(this.g.toJson(course)))
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -192,9 +206,11 @@ class CourseControllerTest {
                 .name("name_updated")
                 .build();
 
-        when(this.courseService.updateCourse(anyInt(), any(Course.class))).thenReturn(false);
+        when(this.courseService.update(anyInt(), any(Course.class))).thenReturn(false);
 
-        this.mockMvc.perform(put("/courses/1").content(this.g.toJson(course)))
+        this.mockMvc.perform(put("/courses/1")
+                .header("Content-Type", "application/json")
+                .content(this.g.toJson(course)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -204,7 +220,7 @@ class CourseControllerTest {
     void deleteCourse() throws Exception {
 
 
-        when(this.courseService.deleteCourse(anyInt())).thenReturn(true);
+        when(this.courseService.delete(anyInt())).thenReturn(true);
 
         this.mockMvc.perform(delete("/courses/1"))
                 .andDo(print())
@@ -215,7 +231,7 @@ class CourseControllerTest {
     void deleteCourseError() throws Exception {
 
 
-        when(this.courseService.deleteCourse(anyInt())).thenReturn(false);
+        when(this.courseService.delete(anyInt())).thenReturn(false);
 
         this.mockMvc.perform(delete("/courses/1"))
                 .andDo(print())

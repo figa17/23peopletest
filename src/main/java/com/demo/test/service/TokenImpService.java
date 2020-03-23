@@ -2,8 +2,6 @@ package com.demo.test.service;
 
 import com.demo.test.config.ConfToken;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Service;
@@ -36,7 +34,7 @@ public class TokenImpService implements TokenService {
                                 .collect(Collectors.toList()))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 600000000))
-              .signWith(ConfToken.generalKey()).compact();
+                .signWith(ConfToken.generalKey()).compact();
 
         return "Bearer " + token;
     }
