@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 @Service
 public class TokenImpService implements TokenService {
 
-    private static final String SECRET_KEY = "test_23people_23people_23people";
     private static final String SUBJECT = "23people";
 
     @Override
