@@ -59,7 +59,7 @@ class CourseTest {
                 .name("name")
                 .build();
 
-        testEntityManager.persist(course);
+        course = testEntityManager.persist(course);
         List<Course> res = courseRepository.findAll();
         Course update = res.get(0);
 
@@ -68,7 +68,7 @@ class CourseTest {
 
         courseRepository.save(update);
 
-        Optional<Course> res_update = courseRepository.findById(1);
+        Optional<Course> res_update = courseRepository.findById(course.getId());
 
         assertTrue(res_update.isPresent());
         assertEquals(res_update.get().getId(), update.getId());

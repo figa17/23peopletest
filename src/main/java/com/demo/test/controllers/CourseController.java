@@ -1,27 +1,21 @@
 package com.demo.test.controllers;
 
+import com.demo.test.models.ApiEntity;
 import com.demo.test.models.Course;
-import com.demo.test.service.CourseService;
+import com.demo.test.service.StandarService;
 import com.google.gson.Gson;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.validation.Valid;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by Felipe González Alfaro on 18-03-20.
@@ -29,10 +23,11 @@ import java.util.stream.Collectors;
 @RestController
 @CrossOrigin
 @Api(value = "Courses", description = "Course controller")
-public class CourseController extends ResponseEntityExceptionHandler {
+public class CourseController extends HandlerArgumentController {
 
     @Autowired
-    private CourseService coursesService;
+    @Qualifier("courseservice")
+    private StandarService coursesService;
 
     @Autowired
     private Gson gson;
@@ -48,9 +43,9 @@ public class CourseController extends ResponseEntityExceptionHandler {
      */
     @ApiParam
     @GetMapping(value = "/courses", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<Course> getCursesPagination(@ApiParam(defaultValue = "Bearer ") String auth, @ApiParam(name = "") @RequestParam int page, @RequestParam int size) {
+    public Page<? extends ApiEntity> getCursesPagination(@ApiParam(defaultValue = "Bearer ") String auth, @ApiParam(name = "") @RequestParam int page, @RequestParam int size) {
 
-        return this.coursesService.getCoursesPag(page, size);
+        return this.coursesService.getPag(page, size);
 
     }
 
@@ -61,9 +56,9 @@ public class CourseController extends ResponseEntityExceptionHandler {
      * @return Array of @{@link Course}
      */
     @GetMapping(value = "/courses/all", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Course>> getAll(@ApiParam(defaultValue = "Bearer ") String auth) {
+    public ResponseEntity<List<? extends ApiEntity>> getAll(@ApiParam(defaultValue = "Bearer ") String auth) {
 
-        List<Course> resp = this.coursesService.getCourses();
+        List<? extends ApiEntity> resp = this.coursesService.getAll();
 
         if (resp.size() > 0) {
             return ResponseEntity.ok()
@@ -82,9 +77,9 @@ public class CourseController extends ResponseEntityExceptionHandler {
      * @return @{@link Course}
      */
     @GetMapping(value = "/courses/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Course> getCourse(@ApiParam(defaultValue = "Bearer ") String auth, @PathVariable int id) {
+    public ResponseEntity<? extends ApiEntity> getCourse(@ApiParam(defaultValue = "Bearer ") String auth, @PathVariable int id) {
 
-        Course resp = this.coursesService.getCourseById(id);
+        Course resp = (Course) this.coursesService.getById(id);
 
         if (resp != null) {
             return ResponseEntity.ok().body(resp);
@@ -97,7 +92,7 @@ public class CourseController extends ResponseEntityExceptionHandler {
     @PostMapping(value = "/courses", headers = "Accept=application/json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> createCourse(@ApiParam(defaultValue = "Bearer ") String auth, @Valid @RequestBody Course course) {
 
-        boolean resp = this.coursesService.saveCourse(course);
+        boolean resp = this.coursesService.save(course);
 
         HttpStatus status = resp ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST;
 
@@ -108,7 +103,7 @@ public class CourseController extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> updateCourse(@ApiParam(defaultValue = "Bearer ") String auth, @PathVariable int id, @Valid @RequestBody Course course) {
 
 
-        boolean resp = this.coursesService.updateCourse(id, course);
+        boolean resp = this.coursesService.update(id, course);
 
         HttpStatus status = resp ? HttpStatus.OK : HttpStatus.NOT_FOUND;
 
@@ -117,28 +112,11 @@ public class CourseController extends ResponseEntityExceptionHandler {
 
     @DeleteMapping(value = "/courses/{id}")
     public ResponseEntity<Object> deleteCourse(@ApiParam(defaultValue = "Bearer ") String auth, @PathVariable int id) {
-        boolean resp = this.coursesService.deleteCourse(id);
+        boolean resp = this.coursesService.delete(id);
 
         HttpStatus status = resp ? HttpStatus.OK : HttpStatus.NOT_FOUND;
         return new ResponseEntity<>(status);
     }
 
 
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("status", status.value());
-
-        //Get all errors
-        List<String> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .collect(Collectors.toList());
-
-        body.put("errors", errors);
-
-        return new ResponseEntity<>(body, headers, HttpStatus.BAD_REQUEST);
-    }
 }

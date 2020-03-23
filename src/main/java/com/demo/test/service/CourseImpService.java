@@ -1,13 +1,16 @@
 package com.demo.test.service;
 
+import com.demo.test.models.ApiEntity;
 import com.demo.test.models.Course;
 import com.demo.test.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.Entity;
 import javax.print.attribute.standard.PageRanges;
 import java.util.Collections;
 import java.util.List;
@@ -18,13 +21,14 @@ import java.util.stream.Collectors;
  * Created by Felipe González Alfaro on 20-03-20.
  */
 @Service
-public class CourseImpService implements CourseService {
+@Qualifier("courseservice")
+public class CourseImpService implements StandarService {
 
     @Autowired
     private CourseRepository courseRepository;
 
     @Override
-    public Page<Course> getCoursesPag(int page, int size) {
+    public Page<? extends ApiEntity> getPag(int page, int size) {
 
         Pageable page_req = PageRequest.of(page, size);
         Page<Course> resultPage = this.courseRepository.findAll(page_req);
@@ -34,22 +38,22 @@ public class CourseImpService implements CourseService {
     }
 
     @Override
-    public List<Course> getCourses() {
+    public List<? extends ApiEntity> getAll() {
 
         return this.courseRepository.findAll();
     }
 
     @Override
-    public boolean saveCourse(Course course) {
+    public boolean save(ApiEntity entity) {
 
-        course = this.courseRepository.save(course);
+        Course course = this.courseRepository.save((Course) entity);
 
         return course.getId() > 0;
     }
 
 
     @Override
-    public Course getCourseById(int id) {
+    public ApiEntity getById(int id) {
 
         Optional<Course> resp = this.courseRepository.findById(id);
 
@@ -58,16 +62,20 @@ public class CourseImpService implements CourseService {
     }
 
     @Override
-    public boolean updateCourse(int id, Course course) {
+    public boolean update(int id, ApiEntity entity) {
 
         Optional<Course> course1 = this.courseRepository.findById(id);
 
-        if (course1.isPresent()) {
-            Course c = course1.get();
-            c.setName(course.getName());
-            c.setCode(course.getName());
 
-            this.courseRepository.save(c);
+        if (course1.isPresent()) {
+            Course course = course1.get();
+            Course course_param = (Course) entity;
+            String name = course_param.getName() != null ? course_param.getName() : course.getName();
+            String code = course_param.getCode() != null ? course_param.getCode() : course.getCode();
+            course.setName(name);
+            course.setCode(code);
+
+            this.courseRepository.save(course);
             return true;
         } else {
 
@@ -76,7 +84,7 @@ public class CourseImpService implements CourseService {
     }
 
     @Override
-    public boolean deleteCourse(int id) {
+    public boolean delete(int id) {
 
         Optional<Course> c = this.courseRepository.findById(id);
 
