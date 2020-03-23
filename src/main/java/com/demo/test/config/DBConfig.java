@@ -15,7 +15,7 @@ import javax.sql.DataSource;
 @Configuration
 @PropertySource(value = {
         "classpath:application.properties",
-        //"file:${user.home}/docker_app.properties"
+        "file:${user.home}/application.properties"
 })
 public class DBConfig {
 
